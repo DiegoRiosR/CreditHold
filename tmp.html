@@ -23,12 +23,12 @@
     <!-- Custom Fonts -->
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
    <!-- jQuery -->
-   <!--  <script type="text/javascript" src="cordova.js"></script>   --> 
    <style type="text/css">
    	  #txtNit+.tag-editor .tag-editor-spacer { width: 7px; }
    </style>
    <script type='text/javascript' src="js/jquery.min.js"></script>
    <script type='text/javascript' src="js/jquery-ui.min.js"></script> 
+   <script type="text/javascript" src="cordova.js"></script>
 </head>
 <body>
 
@@ -78,7 +78,7 @@
             </li>
             <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                    <i class="fa fa-user fa-fw"></i> secondtruth <b class="caret"></b>
+                    <i class="fa fa-user fa-fw"></i> Manager <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu dropdown-user">
                     <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
@@ -108,10 +108,10 @@
                         </div>
                     </li>
                     <li>
-                        <a href="#" class="active"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                        <a href="#" class="active"><i class="fa fa-dashboard fa-fw"></i> Estado Cliente</a>
                     </li>
                     <li>
-                        <a href="#"><i class="fa fa-sitemap fa-fw"></i> Multi-Level Dropdown<span class="fa arrow"></span></a>
+                        <a href="#"><i class="fa fa-sitemap fa-fw"></i> Ingreso Ordenes Venta<span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
                             <li>
                                 <a href="#">Second Level Item</a>
@@ -138,7 +138,7 @@
 
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Customer Tracker</h1>
+                    <h1 class="page-header">Seguimiento de Cliente</h1>
                 </div>
             </div>
             <!-- Table -->
@@ -201,44 +201,34 @@
     <script type="text/javascript">
     
 	    var database = null;
-	    //Vue.config.debug = false;
-	    //Vue.config.devtools = false;
-	
-	    successCB();
-	    LoadDataCustomer();
+	    Vue.config.debug = false;
+	    Vue.config.devtools = false;
+		      
 	    document.addEventListener('deviceready', onDeviceReady, false);   
 	    
 	    function onDeviceReady() 
 		{
-		   //LoadDataCustomer();
-		   successCB();
-		   database = window.openDatabase("Customer","1.0","Test Select",2 * 1024 * 1024);
-		   database.transaction(CreateDataCust, errorDB, successDB);
-		} 
-		
-		function CreateDataCust(tx) 
-		{
-		   tx.executeSql("Create Table IF NOT EXISTS Customer(ID INT, Name text, saldo int)");
-		   tx.executeSql("Insert Into Customer values(1035, 'Diego Rios', 15000)");
+		   //successCB();
+		   LoadDataCustomer();
 		} 
 
 		function successCB()
 		{
 		  $.post('http://190.27.196.45:8285/api/ServicioWebApi/ServicioWeb', function (data) {
 		     InsertInto(data.Clientes);
-		  });
+		  });		  
 		}        
 
         function InsertInto(data)
         {
-          database = window.openDatabase("CreditCust","1.0","Table Credit",2 * 1024 * 1024);
-          /*database.transaction(
+          database = window.openDatabase("Customer","1.0","Table Credit",2 * 1024 * 1024);
+          database.transaction(
 		    function (tx) 
 		    {
+	            tx.executeSql("Create Table IF NOT EXISTS CreditCust(CustNum INT, ResaleID INT, CreditLimit INT, CreditHold BIT)");
 	            var l = data.length;
 	            var sql = 'Insert Into CreditCust values(?,?,?,?)';
 	            var b;
-	            tx.executeSql("Create Table IF NOT EXISTS CreditCust(CustNum INT, ResaleID INT, CreditLimit INT, CreditHold BIT)");
 	            for (var i = 0; i < l; i++) 
 	            {
 	                b = data[i];
@@ -248,45 +238,9 @@
 		    },
 		    function (error) {console.log(error);},
 		    function () {}
-		  );*/
-          
-          database.transaction(
-          	function (tx) 
-		    {
-		       var DataCust = [];
-               tx.executeSql("Select * From CreditCust", [], 
-               function(tx, response)
-               {
-               	 for(var i = 0; i < response.rows.length; i++)
-				 	DataCust.push(String(response.rows.item(i).ResaleID));
-
-				 // Init tagEditor
-                 $('#txtNit').tagEditor({
-				    autocomplete: { 
-			            delay: 2, 
-			            position: { collision: 'fit' }, 
-			            source  : DataCust,
-			            error: function(){
-			              console.log("error");
-			            }
-		            },
-		            forceLowercase: false,
-		            delimiter: ', ',
-		            placeholder: 'Busqueda por nit...'
-			     }); 
-               },
-               function (error) {console.log(error);} );
-            },
-          	function (error) {console.log(error);},
-          	function (success) { console.log(success); }
-          );       
-        }
-		
-		function CreateDataCredit(tx) 
-		{
-		   tx.executeSql("Create Table IF NOT EXISTS CreditCust(CustNum INT, ResaleID INT, CreditLimit INT, CreditHold BIT)");
-		   tx.executeSql("Insert Into CreditCust values(1035, 2500, 15000 , 1)");
-		}  
+		  ); 
+		  LoadDataCustomer();       
+        } 
 	     
 	    function LoadDataCustomer()
 	    { 
@@ -294,38 +248,76 @@
 	           el: '#listuser',
 	           created: function()
 			   {
-	             //this.consultToAPI();
-	             console.log("INIT");
+	             this.consultToAPI();
 			   },
 	           methods:
 			   {
 			     consultToAPI: function()
-				 {				 
-				   /*var UserDR = [];
-				   database = window.openDatabase("CreditCust","1.0","Table Credit",2 * 1024 * 1024);
-		           database.transaction(function(tx)
-		           {
-                       tx.executeSql("Create Table IF NOT EXISTS CreditCust(CustNum INT, ResaleID INT, CreditLimit INT, CreditHold BIT)");
-		               tx.executeSql("Insert Into CreditCust values(1035, 2500, 15000 , 1)");
+				 {		
+				       var DataCust = [],
+				           Binding = [];					       
+				       database = window.openDatabase("Customer","1.0","Table Credit",2 * 1024 * 1024);
 
-					   Vue.http.post('http://190.27.196.45:8285/api/ServicioWebApi/ServicioWeb',
-					       { form: 'DataForm' },
-					       {emulateJSON : true}).then(function(data)			    	
-						   {
-							 for(var user in data.body.Clientes)
-							 {                
-							    var NewUser =
+				       database.transaction(
+			          	function (tx) 
+					    {
+			               tx.executeSql("Select * From CreditCust", [], 
+			               function(tx, response)
+			               {
+			               	 for(var i = 0; i < response.rows.length; i++)
+							   DataCust.push(String(response.rows.item(i).ResaleID));	                         				
+			               },
+			               function (error) {console.log(error);} );
+			            },
+			          	function (error) {console.log(error);},
+			          	function (success) { }
+			          ); 				      
+
+				      // Init tagEditor
+	                  $('#txtNit').tagEditor({
+					    autocomplete: { 
+				            delay: 2, 
+				            position: { collision: 'fit' }, 
+				            source  : DataCust,
+				            error: function(){
+				              console.log("error");
+				            }
+			            },
+			            forceLowercase: false,
+			            delimiter: ', ',
+			            placeholder: 'Busqueda por nit...',
+			            beforeTagSave: function(field, editor, tags, tag, val) 
+			            {             
+                           if(val.length > 0 && typeof tag != 'undefined')
+                           { 
+                           	   database.transaction(
+					          	function (tx) 
 							    {
-								 CustNum: data.body.Clientes[user].CustNum,
-								 ResaleID: data.body.Clientes[user].ResaleID ,
-								 CreditLimit: data.body.Clientes[user].Limite,
-							 	 CreditHold : data.body.Clientes[user].CreditHold
-							    }
-							    UserDR.push( NewUser );
-							  }							
-						   });
-					}, errorDB, successDB);  
-		            this.UserRegister = UserDR;*/
+					               tx.executeSql("Select * From CreditCust Where ResaleID = "+ val, [], 
+					               function(tx, response)
+					               {
+					               	 for(var i = 0; i < response.rows.length; i++)
+					               	 {
+									   DataCust.push(String(response.rows.item(i).ResaleID));
+									   var NewUser =
+									   {
+										 CustNum: response.rows.item(i).CustNum,
+										 ResaleID: response.rows.item(i).ResaleID ,
+										 CreditLimit: formatNumber.new(Number(response.rows.item(i).CreditLimit).toFixed(2), "$"),
+									 	 CreditHold : response.rows.item(i).CreditHold
+									   }
+									   Binding.push( NewUser );			               	 
+					               	 }                            				
+					               },
+					               function (error) {console.log(error);} );
+					            },
+					          	function (error) {console.log(error);},
+					          	function (success) { }
+					          ); 
+                           }
+                        }
+				      });	
+				      this.UserRegister = Binding;		          
 				 },
 				 
 				 RefreshCust: function()
@@ -336,7 +328,7 @@
 		       },
 	           data:
 	           {
-	             Title: "Soluciones Showup",
+	             Title: "Epicor",
 	             UserRegister: [ ]             
 	           },
 	           created: function()
@@ -355,6 +347,26 @@
 		{
 		  console.log(error);
 		} 
+
+		var formatNumber = {
+	       separador: ".", // separador para los miles
+	       sepDecimal: ',', // separador para los decimales
+	       formatear:function (num){
+	       num +='';
+	       var splitStr = num.split('.');
+	       var splitLeft = splitStr[0];
+	       var splitRight = splitStr.length > 1 ? this.sepDecimal + splitStr[1] : '';
+	       var regx = /(\d+)(\d{3})/;
+	       while (regx.test(splitLeft)) {
+	       splitLeft = splitLeft.replace(regx, '$1' + this.separador + '$2');
+	       }
+	       return this.simbol + splitLeft +splitRight;
+	       },
+	       new:function(num, simbol){
+	       this.simbol = simbol ||'';
+	       return this.formatear(num);
+       }
+   } 
    </script>
 </div>
 
