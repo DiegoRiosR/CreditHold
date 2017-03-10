@@ -151,46 +151,96 @@
                 </div>
             </div>
 
-            <div class="row" id="listuser">
-			    <div class="col-lg-12">
-			        <div class="panel panel-default">
-			            <div class="panel-heading">
-			               {{ Title }}  &nbsp;&nbsp;
-			               <button type="button" class="btn btn-outline btn-success btn-xs" @click="RefreshCust()">
-			                 Success
-			               </button>
-			              &nbsp;&nbsp; {{ UserRegister.length }}
-			            </div>
-			            <!-- /.panel-heading -->
-			            <div class="panel-body">
-			                <div class="table-responsive">
-			                    <table class="table table-striped table-bordered table-hover">
-			                        <thead>
-			                            <tr>
-			                                <th>CustNum</th>
-			                                <th>CreditHold</th>
-			                                <th>CreditLimit</th>
-			                                <th>ResaleID</th>
-			                            </tr>
-			                        </thead>
-			                        <tbody>
-			                            <tr v-for="user in UserRegister">
-			                                <td>{{ user.CustNum }}</td>
-			                                <td>{{ user.CreditHold }}</td>
-			                                <td>{{ user.CreditLimit }}</td>
-			                                <td>{{ user.ResaleID }}</td>
-			                            </tr>			                           
-			                        </tbody>
-			                    </table>
-			                </div>
-			                <!-- /.table-responsive -->
-			            </div>
-			            <!-- /.panel-body -->
-			        </div>
-			        <!-- /.panel -->
-			    </div>
-			</div>
-          <!-- Table -->
+            <div class="text" id="listuser">                 
+
+                <div class="row">
+                   
+                   <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+				               {{ Title }}  &nbsp;&nbsp;
+				               <button type="button" class="btn btn-outline btn-success btn-xs" @click="RefreshCust()">
+				                 Limpiar
+				               </button>
+				              &nbsp;&nbsp; {{ UserRegister.length }}
+				            </div>
+                            <!-- /.panel-heading -->
+                            <div class="panel-body">
+                                <!-- Nav tabs -->
+                                <ul class="nav nav-pills">
+                                    <li class="active"><a href="#home-pills" data-toggle="tab" aria-expanded="true">Crédito Retenido</a>
+                                    </li>
+                                    <li class=""><a href="#profile-pills" data-toggle="tab" aria-expanded="false">Facturas Abiertas</a>
+                                    </li>
+                                </ul>
+
+                                <!-- Tab panes -->
+                                <div class="tab-content">
+                                    <div class="tab-pane fade active in" id="home-pills">
+                                        <hr>
+                                        <div class="table-responsive">
+						                    <table class="table table-striped table-bordered table-hover">
+						                        <thead>
+						                            <tr>
+						                                <th>CustNum</th>
+						                                <th>CreditHold</th>
+						                                <th>CreditLimit</th>
+						                                <th>ResaleID</th>
+						                            </tr>
+						                        </thead>
+						                        <tbody>
+						                            <tr v-for="user in UserRegister">
+						                                <td>{{ user.CustNum }}</td>
+						                                <td>
+						                                   <div class="text-center checkbox">
+			                                                    <label>
+			                                                        <input type="checkbox" :checked="user.CreditHold">
+			                                                    </label>
+			                                                </div>
+						                                </td>
+						                                <td>{{ user.CreditLimit }}</td>
+						                                <td>{{ user.ResaleID }}</td>
+						                            </tr>			                           
+						                        </tbody>
+						                    </table>
+				                        </div>
+				                        <!-- /.table-responsive -->
+                                    </div>
+                                    <div class="tab-pane fade" id="profile-pills">
+                                        <hr>
+                                        <div class="table-responsive">
+						                    <table class="table table-striped table-bordered table-hover">
+						                        <thead>
+						                            <tr>
+						                                <th>CustNum</th>
+						                                <th>InvoiceNum</th>
+						                                <th>InvoiceAmt</th>
+						                                <th>InvoiceBal</th>
+						                            </tr>
+						                        </thead>
+						                        <tbody>
+						                            <tr v-for="invoice in OpenInvioces">
+						                                <td>{{ invoice.CustNum }}</td>
+						                                <td>{{ invoice.InvoiceNum }}</td>
+						                                <td>{{ invoice.InvoiceAmt }}</td>
+						                                <td>{{ invoice.InvoiceBal }}</td>
+						                            </tr>			                           
+						                        </tbody>
+						                    </table>
+				                        </div>
+				                        <!-- /.table-responsive -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+
+                </div>
+
+            </div>          
+          <!-- Table -->        
           
         </div>
     </div>
@@ -201,9 +251,12 @@
     <script type="text/javascript">
     
 	    var database = null;
+	    var tagse;
 	    Vue.config.debug = false;
 	    Vue.config.devtools = false;
-		      
+		   
+		//successCB();   
+		//LoadDataCustomer();
 	    document.addEventListener('deviceready', onDeviceReady, false);   
 	    
 	    function onDeviceReady() 
@@ -215,11 +268,12 @@
 		function successCB()
 		{
 		  $.post('http://190.27.196.45:8285/api/ServicioWebApi/ServicioWeb', function (data) {
-		     InsertInto(data.Clientes);
+		     //InsertIntoI(data.Clientes);
+		     //InsertIntoII(data.FacturasCliente);
 		  });		  
 		}        
 
-        function InsertInto(data)
+        function InsertIntoI(data)
         {
           database = window.openDatabase("Customer","1.0","Table Credit",2 * 1024 * 1024);
           database.transaction(
@@ -233,6 +287,29 @@
 	            {
 	                b = data[i];
 	                var params = [b.CustNum, b.ResaleID, b.Limite, b.CreditHold];
+	                tx.executeSql(sql, params);
+	            }
+		    },
+		    function (error) {console.log(error);},
+		    function () {}
+		  ); 
+		  LoadDataCustomer();       
+        } 
+
+        function InsertIntoII(data)
+        {
+          database = window.openDatabase("Customer","1.0","Table Credit",2 * 1024 * 1024);
+          database.transaction(
+		    function (tx) 
+		    {
+	            tx.executeSql("Create Table IF NOT EXISTS InvoiceOpen(CustNum INT, InvoiceNum INT, InvoiceAmt INT, InvoiceBal INT)");
+	            var l = data.length;
+	            var sql = 'Insert Into InvoiceOpen values(?,?,?,?)';
+	            var b;
+	            for (var i = 0; i < l; i++) 
+	            {
+	                b = data[i];
+	                var params = [b.CustNum, b.Factura, b.ValorFactura, b.SaldoFactura];
 	                tx.executeSql(sql, params);
 	            }
 		    },
@@ -255,7 +332,9 @@
 			     consultToAPI: function()
 				 {		
 				       var DataCust = [],
-				           Binding = [];					       
+				           Binding = [],
+				           BindinT = [],
+                           CNum    = 0;
 				       database = window.openDatabase("Customer","1.0","Table Credit",2 * 1024 * 1024);
 
 				       database.transaction(
@@ -271,10 +350,13 @@
 			            },
 			          	function (error) {console.log(error);},
 			          	function (success) { }
-			          ); 				      
+			          ); 
+
+			          if (typeof tagse != 'undefined')
+                         $('#txtNit').tagEditor('destroy');				      
 
 				      // Init tagEditor
-	                  $('#txtNit').tagEditor({
+	                 tagse = $('#txtNit').tagEditor({
 					    autocomplete: { 
 				            delay: 2, 
 				            position: { collision: 'fit' }, 
@@ -293,20 +375,28 @@
                            	   database.transaction(
 					          	function (tx) 
 							    {
-					               tx.executeSql("Select * From CreditCust Where ResaleID = "+ val, [], 
+					               tx.executeSql("Select CC.CustNum,ResaleID,CreditLimit,CreditHold,InvoiceNum,InvoiceAmt,InvoiceBal From CreditCust CC Inner Join InvoiceOpen IO On (CC.CustNum = IO.CustNum) Where ResaleID = "+ val, [], 
 					               function(tx, response)
 					               {
+                                     var Holding =
+									 {
+										 CustNum: response.rows.item(0).CustNum,
+										 ResaleID: response.rows.item(0).ResaleID ,
+										 CreditLimit: formatNumber.new(Number(response.rows.item(0).CreditLimit).toFixed(2), "$"),
+									 	 CreditHold : response.rows.item(0).CreditHold
+									 }
+									 BindinT.push( Holding );	
+
 					               	 for(var i = 0; i < response.rows.length; i++)
 					               	 {
-									   DataCust.push(String(response.rows.item(i).ResaleID));
-									   var NewUser =
+									   var InvOpen =
 									   {
 										 CustNum: response.rows.item(i).CustNum,
-										 ResaleID: response.rows.item(i).ResaleID ,
-										 CreditLimit: formatNumber.new(Number(response.rows.item(i).CreditLimit).toFixed(2), "$"),
-									 	 CreditHold : response.rows.item(i).CreditHold
+										 InvoiceNum: response.rows.item(i).InvoiceNum ,
+										 InvoiceAmt: formatNumber.new(Number(response.rows.item(i).InvoiceAmt).toFixed(2), "$"),
+									 	 InvoiceBal : formatNumber.new(Number(response.rows.item(i).InvoiceBal).toFixed(2), "$")
 									   }
-									   Binding.push( NewUser );			               	 
+									   Binding.push( InvOpen );			               	 
 					               	 }                            				
 					               },
 					               function (error) {console.log(error);} );
@@ -316,20 +406,23 @@
 					          ); 
                            }
                         }
-				      });	
-				      this.UserRegister = Binding;		          
+				      });
+				      this.UserRegister = BindinT;	        
+				      this.OpenInvioces = Binding;	
 				 },
 				 
 				 RefreshCust: function()
 				 {
 				   this.UserRegister = []
+				   this.OpenInvioces = []
 				   this.consultToAPI();
 				 },
 		       },
 	           data:
 	           {
-	             Title: "Epicor",
-	             UserRegister: [ ]             
+	             Title: "Conectado Epicor905",
+	             UserRegister: [],
+	             OpenInvioces: []
 	           },
 	           created: function()
 			   {
